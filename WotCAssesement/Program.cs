@@ -16,7 +16,7 @@ var effect2 = new LayeredEffectDefinition
 {
     Attribute = AttributeKey.Power,
     Operation = EffectOperation.Multiply,
-    Layer = 2,
+    Layer = 1,
     Modification = 2
 };
 
