@@ -23,7 +23,7 @@ public class LayeredAttributesImplementation: ILayeredAttributes
     private const int DefaultAttributeValue = 0;
     
     private readonly Dictionary<AttributeKey, AttributeValue<int>> _attributes = new();
-    private Dictionary<AttributeKey, PriorityQueue<LayeredEffectDefinition, int>> _betterLayeredEffects = new();
+    private readonly Dictionary<AttributeKey, PriorityQueue<LayeredEffectDefinition, int>> _layeredEffects = new();
     
     public void SetBaseAttribute(AttributeKey key, int value)
     {
@@ -49,14 +49,14 @@ public class LayeredAttributesImplementation: ILayeredAttributes
     {
         // add the layered effect to the list, and recalc the attribute it affected
 
-        if (_betterLayeredEffects.TryGetValue(effect.Attribute, out var attribute))
+        if (_layeredEffects.TryGetValue(effect.Attribute, out var attribute))
         {
             attribute.Enqueue(effect, effect.Layer);
         }
         else
         {
-            _betterLayeredEffects[effect.Attribute] = new PriorityQueue<LayeredEffectDefinition, int>();
-            _betterLayeredEffects[effect.Attribute].Enqueue(effect, effect.Layer);
+            _layeredEffects[effect.Attribute] = new PriorityQueue<LayeredEffectDefinition, int>();
+            _layeredEffects[effect.Attribute].Enqueue(effect, effect.Layer);
         }
 
         CalculateCurrentAttribute(effect.Attribute);
@@ -65,7 +65,7 @@ public class LayeredAttributesImplementation: ILayeredAttributes
     public void ClearLayeredEffects()
     {
         // clear out the layered effects list
-        _betterLayeredEffects.Clear();
+        _layeredEffects.Clear();
 
         // set current values back to base values
         foreach (KeyValuePair<AttributeKey, AttributeValue<int>> attribute in _attributes)
@@ -86,7 +86,7 @@ public class LayeredAttributesImplementation: ILayeredAttributes
         int value = _attributes[effectAttribute].BaseValue;
         
         // get all the layered effects, and order them by the layered attribute to get them in the right order
-        PriorityQueue<LayeredEffectDefinition, int> effects = _betterLayeredEffects[effectAttribute];
+        PriorityQueue<LayeredEffectDefinition, int> effects = _layeredEffects[effectAttribute];
         var queueCopy = new PriorityQueue<LayeredEffectDefinition, int>();
 
         while (effects.TryDequeue(out var effect, out var priority))
@@ -119,6 +119,6 @@ public class LayeredAttributesImplementation: ILayeredAttributes
         }
         
         _attributes[effectAttribute].CurrentValue = value;
-        _betterLayeredEffects[effectAttribute] = queueCopy;
+        _layeredEffects[effectAttribute] = queueCopy;
     }
 }
